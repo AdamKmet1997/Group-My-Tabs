@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "Tab Grouping Extension",
+    "version": "2.0",
+    "description": "Groups tabs with the same URLs",
+    "permissions": [
+        "tabs",
+        "tabGroups",
+        "scripting"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "images/ball.png",
+            "48": "images/ball2.jpg",
+            "128": "images/ball3.png"
+        }
+    }
+}
