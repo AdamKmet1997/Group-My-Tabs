@@ -1,0 +1,79 @@
+$body-bg-color: #C7CEDB;
+$title-font-color: #3a3a3a;
+$button-bg-color: #2E3532;
+$button-hover-bg-color: #7E9181;
+$info-icon-bg-color: #ddd;
+$info-icon-font-color: #333;
+$tooltip-bg-color: rgba(0, 0, 0, 0.7);
+$tooltip-font-color: #fff;
+
+body {
+    font-family: Arial, sans-serif;
+    padding: 10px;
+    text-align: center;
+    width: 300px;
+    height: 150px;
+    background-color: $body-bg-color;
+}
+
+#title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: $title-font-color;
+
+    .info-icon {
+        display: inline-block;
+        margin-left: 5px;
+        padding: 2px 5px;
+        border-radius: 50%;
+        background-color: $info-icon-bg-color;
+        color: $info-icon-font-color;
+        cursor: pointer;
+        position: relative;
+        vertical-align: middle;
+
+        &:hover::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            bottom: 25px;
+            transform: translateX(-50%);
+            padding: 8px;
+            border-radius: 4px;
+            background-color: $tooltip-bg-color;
+            color: $tooltip-font-color;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        &:hover::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: $tooltip-bg-color transparent transparent transparent;
+        }
+    }
+}
+
+#listUrls {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: $button-bg-color;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 5rem;
+    margin-bottom: 1rem;
+
+    &:hover {
+        background-color: $button-hover-bg-color;
+    }
+}
