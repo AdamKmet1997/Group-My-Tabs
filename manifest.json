@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Group My Tabs",
     "version": "1.0",
-    "description": "This extesion allows you to group your tabs into Google Chrome groups. This is a Chrome built-in feature. This extension then extendson that functionality and instead of grouping tabs manually, youll be able to press one button and the extension finds corresponding domains and groups them for you.",
+    "description": "Group tabs by domain in Chrome with one click, enhancing built-in functionality for organized browsing.",
     "permissions": [
         "tabs",
         "tabGroups"
