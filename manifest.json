@@ -13,9 +13,9 @@
     "action": {
         "default_popup": "popup.html",
         "default_icon": {
-            "16": "images/ball.png",
-            "48": "images/ball2.jpg",
-            "128": "images/ball3.png"
+            "16": "images/G-40.png",
+            "48": "images/G-40.png",
+            "128": "images/G-128.png"
         }
     }
 }
