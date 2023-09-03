@@ -4,7 +4,8 @@
     "version": "1.0",
     "description": "Group tabs by domain in Chrome with one click, enhancing built-in functionality for organized browsing.",
     "permissions": [
-        "tabs"
+        "tabs",
+        "tabGroups"
         ],
     "background": {
         "service_worker": "background.js"
