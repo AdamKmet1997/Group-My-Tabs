@@ -65,3 +65,8 @@ GroupMyTabs is a Chrome extension that lets users easily group their tabs by dom
 ## Contribution
 
 Feel free to fork the project, make changes, and create a pull request. Any contribution to enhance the extension's features or fix bugs is welcome!
+
+# Our Contributors
+
+- [Adam Kmet](https://github.com/AdamKmet1997)
+- [Gabrielius Stasaitis](https://github.com/noobgab)
