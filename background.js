@@ -127,7 +127,10 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   sendResponse({ status: "done" });
 });
 
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
+  // Get the current active window
+  const currentWindowObject = await chrome.windows.getCurrent() 
+
   if (changeInfo.status === "complete" && !tab.pinned) {
     let tabDomain = getDomainFromURL(tab.url);
     if (!tabDomain) return;
@@ -136,7 +139,8 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
       let groupMap = {};
 
       allTabs.forEach((existingTab) => {
-        if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE) {
+        // Check if the tab is in the current active window
+        if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE && existingTab.windowId === currentWindowObject.id) {
           let domain = getDomainFromURL(existingTab.url);
           groupMap[domain] = existingTab.groupId;
         }
