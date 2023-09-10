@@ -1,41 +1,63 @@
-body {
-  font-family: Arial, sans-serif;
-  padding: 10px;
-  text-align: center;
-  width: 300px;
-  height: 150px;
-  background-color: #E9E3B4;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+
+*{
+    margin: 0px;
+    padding: 0px;
+    --background-color:  #d9b650;
+    --popup-width: 300px;
+    --popup-height: 130px;
+    --popup-grp-tab-btn-width: 170px;
+    --popup-grp-tab-btn-height: 50px;
+    --popup-grp-tab-btn-font-size: 15px;
 }
 
-#title {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 1em;
-  color: #428fd6;
+.main-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width:var(--popup-width);
+    height: var(--popup-height) ;
+    background-color:var(--background-color);
+    ;
 }
 
-#subtitle {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 1em;
-  color: black;
+
+/* Group Tabs Button */
+
+.group-tabs-btn{
+    width: var(--popup-grp-tab-btn-width);
+    height: var(--popup-grp-tab-btn-height);
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--popup-grp-tab-btn-font-size);
+    transition: background-color 0.2s ease;
 }
 
-#listUrls {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  background-color: #428fd6;
-  color: white;
-  font-size: 20px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin-top: 2em;
-  margin-bottom: 1em;
-}
-#listUrls:hover {
-  background-color: #3E6990;
+.group-tabs-btn:hover{
+    cursor: pointer;
+    background-color: #ffffd2;
 }
 
-/*# sourceMappingURL=styles.css.map */
+/* Links */
+
+.links-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.link-style{
+    margin: 2px 10px;
+    font-family: 'Poppins', sans-serif;
+    transition: color 0.2s ease;
+    text-decoration: none;
+}
+
+.links-container a:hover{
+    cursor: pointer;
+    color: rgb(255, 255, 210);
+}
