@@ -10,37 +10,56 @@ function getGroupForTab(groups, tab) {
   return groups.filter(group => group.tabIds.includes(tab.id))[0];
 }
 
+// Added this function to retrieve the "Last Focused Window" (which basically is the current active window)
+function getLastFocusedWindow() {
+  return new Promise((resolve, reject) => {
+    chrome.windows.getLastFocused({ populate: true }, (window) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else{
+        resolve(window);
+      }
+    });
+  });
+}
+
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   const existingGroupsAndTabs = [];
 
+  // Get the last focused (current) window
+  const lastFocusedWindowObject = await getLastFocusedWindow() 
+  const lastFocusedWindowID = lastFocusedWindowObject.id
+
   // Wrap the chrome API calls in Promises
-  const queryGroups = () => {
+  // Get all groups in the CURRENT Window
+  const queryGroups = (windowId) => {
     return new Promise((resolve) => {
-      chrome.tabGroups.query({}, (groups) => {
+      chrome.tabGroups.query({ windowId }, (groups) => {
         resolve(groups);
       });
     });
   };
-
-  const queryTabs = (groupId) => {
+  // Get all tabs in a group in the CURRENT Window
+  const queryTabs = (groupId,windowId) => {
     return new Promise((resolve) => {
-      chrome.tabs.query({ groupId }, (tabs) => {
+      chrome.tabs.query({ groupId, windowId }, (tabs) => {
         resolve(tabs);
       });
     });
   };
 
+  // Get all tabs in the CURRENT Window
   const queryAllTabs = () => {
-    return new Promise((resolve) => {
-      chrome.tabs.query({}, (tabs) => {
-        resolve(tabs);
-      });
-    });
+    // return new Promise((resolve) => {
+    //   chrome.tabs.query({ windowId }, (tabs) => {
+    //     resolve(tabs);
+    //   });
+    // });
+    return lastFocusedWindowObject.tabs
   };
 
   // Wait for the groups to be fetched
-  const groups = await queryGroups();
-
+  const groups = await queryGroups(lastFocusedWindowID);
   for(let i = 0; i < groups.length; i++) {
     const group = groups[i];
 
@@ -54,8 +73,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     });
 
     // Wait for the tabs to be fetched for this group
-    const tabs = await queryTabs(group.id);
-
+    const tabs = await queryTabs(group.id, lastFocusedWindowID);
     tabs.forEach(tab => existingGroupsAndTabs[i].tabIds.push(tab.id));
   }
 
@@ -129,39 +147,39 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   // Get the current active window
-  const currentWindowObject = await chrome.windows.getCurrent() 
+  const lastFocusedWindowObject = await getLastFocusedWindow() 
 
   if (changeInfo.status === "complete" && !tab.pinned) {
     let tabDomain = getDomainFromURL(tab.url);
     if (!tabDomain) return;
 
-    chrome.tabs.query({}, function (allTabs) {
-      let groupMap = {};
+    let allTabs = lastFocusedWindowObject.tabs
+    let groupMap = {};
 
-      allTabs.forEach((existingTab) => {
-        // Check if the tab is in the current active window
-        if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE && existingTab.windowId === currentWindowObject.id) {
-          let domain = getDomainFromURL(existingTab.url);
-          groupMap[domain] = existingTab.groupId;
-        }
-      });
-
-      if (groupMap[tabDomain] !== undefined) {
-        chrome.tabs.group(
-          {
-            tabIds: [tabId],
-            groupId: groupMap[tabDomain],
-          },
-          function () {
-            if (chrome.runtime.lastError) {
-              console.error(
-                "Error moving tab to group:",
-                chrome.runtime.lastError.message
-              );
-            }
-          }
-        );
+    allTabs.forEach((existingTab) => {
+      if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE) {
+        let domain = getDomainFromURL(existingTab.url);
+        groupMap[domain] = existingTab.groupId;
       }
     });
+
+    if (groupMap[tabDomain] !== undefined) {
+      chrome.tabs.group(
+        {
+          tabIds: [tabId],
+          groupId: groupMap[tabDomain],
+        },
+        function () {
+          if (chrome.runtime.lastError) {
+            console.error(
+              "Error moving tab to group:",
+              chrome.runtime.lastError.message
+            );
+          }
+        }
+      );
+    }
+
+
   }
 });
