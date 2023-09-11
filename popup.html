@@ -1,30 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Popup</title>
-    <!-- Link to the compiled CSS -->
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-
-  <body>
-    <div id="title">Group My Tabs</div>
-    <div id="subtitle">
-      <p>
-        We appreciate your use of "Group My Tabs." Our goal is to streamline
-        your browsing experience.
-      </p>
-      <p>
-        Your feedback is invaluable; kindly leave a review or suggest
-        improvements
-        <a
-          href="https://chrome.google.com/webstore/detail/group-my-tabs/gefpkapjbpiigomladkmbcopmmfmdbmd"
-          >here</a
-        >.
-      </p>
-      <p>Thank you for your support!</p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="main-container">
+        <button id="listUrls">Group My Tabs</button>
+        <div id="links-container">
+            <a href="https://github.com/AdamKmet1997/Group-My-Tabs" id="link-style" target="_blank">Github</a>
+            <a href="https://chrome.google.com/webstore/detail/group-my-tabs/gefpkapjbpiigomladkmbcopmmfmdbmd"  id="link-style" target="_blank">Leave A Review?</a>
+        </div>
     </div>
-    <button id="listUrls">Group tabs</button>
-    <script src="popup.js"></script>
-  </body>
+</body>
+<script src="popup.js"></script>
 </html>
+
