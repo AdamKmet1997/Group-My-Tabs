@@ -70,4 +70,4 @@ Feel free to fork the project, make changes, and create a pull request. Any cont
 
 - [Adam Kmet](https://github.com/AdamKmet1997)
 - [Gabrielius Stasaitis](https://github.com/noobgab)
--[Kaif Halak](https://github.com/KaifHalak)
+- [Kaif Halak](https://github.com/KaifHalak)
