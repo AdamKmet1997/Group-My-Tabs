@@ -1,16 +1,22 @@
 * {
   margin: 0px;
   padding: 0px;
+  box-sizing: border-box;
 }
 
-#main-container {
+body, html {
+  width: 300px;
+  height: 130px;
+  background-color: #d9b650;
+}
+
+.main-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 300px;
-  height: 130px;
-  background-color: #d9b650;
+  width: 100%;
+  padding-bottom: 10px;
 }
 
 /* Group Tabs Button */
@@ -48,6 +54,140 @@
 #link-style:hover {
   cursor: pointer;
   color: #ffffd2;
+}
+
+.settings-bar-container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 10px;
+  padding-left: 10px;
+}
+
+.settings-page-btn {
+  background: transparent;
+  border: 0px;
+  cursor: pointer;
+}
+
+.settings-page-icon {
+  height: 20px;
+  width: 20px;
+  transition: fill 0.2s ease;
+}
+.settings-page-icon:hover {
+  cursor: pointer;
+  fill: #ffffd2;
+}
+
+.settings-container {
+  width: 100%;
+  height: 260%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auto-grouping-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  font-family: "Poppins", sans-serif;
+}
+
+.groups-window-text {
+  font-size: 13px;
+  font-family: "Poppins", sans-serif;
+  width: 100%;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.no-groups-text {
+  font-size: 20px;
+  font-family: "Poppins", sans-serif;
+  grid-column: 1/-1;
+  grid-row: 1/-1;
+  margin-right: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.groups-container {
+  display: grid;
+  grid-template-columns: repeat(4, 75px);
+  height: 95%;
+  width: 95%;
+  border: 1px solid black;
+  margin: 10px;
+  border-radius: 10px;
+}
+
+.group {
+  font-size: 15px;
+  font-family: "Poppins", sans-serif;
+  grid-column: span 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.toggle-size {
+  --width: 35px !important;
+}
+
+.toggle-container {
+  --width: 40px;
+  --height: calc(var(--width) / 2);
+  --border-radius: calc(var(--height) / 2);
+  margin: 0px 20px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-fill {
+  position: relative;
+  width: var(--width);
+  height: var(--height);
+  border-radius: var(--border-radius);
+  background: #ddd;
+  transition: background 0.2s;
+}
+
+.toggle-input:checked ~ .toggle-fill {
+  /* background: #009578; */
+  background: #83580B;
+}
+
+.toggle-fill::after {
+  content: "";
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: var(--height);
+  width: var(--height);
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+  border-radius: var(--border-radius);
+  transition: transform 0.2s;
+}
+
+.toggle-input:checked ~ .toggle-fill::after {
+  transform: translateX(var(--height));
+}
+
+.hide {
+  display: none;
 }
 
 /*# sourceMappingURL=styles.css.map */
