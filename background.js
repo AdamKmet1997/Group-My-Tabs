@@ -23,7 +23,19 @@ function getLastFocusedWindow() {
   });
 }
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+// Get all groups in the CURRENT Window
+const queryGroups = (windowId) => {
+    return new Promise((resolve) => {
+      chrome.tabGroups.query({ windowId }, (groups) => {
+        resolve(groups);
+      });
+    });
+  };
+
+
+
+
+async function groupTabs(sendResponse){
   const existingGroupsAndTabs = [];
 
   // Get the last focused (current) window
@@ -31,14 +43,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   const lastFocusedWindowID = lastFocusedWindowObject.id;
 
   // Wrap the chrome API calls in Promises
-  // Get all groups in the CURRENT Window
-  const queryGroups = (windowId) => {
-    return new Promise((resolve) => {
-      chrome.tabGroups.query({ windowId }, (groups) => {
-        resolve(groups);
-      });
-    });
-  };
   // Get all tabs in a group in the CURRENT Window
   const queryTabs = (groupId, windowId) => {
     return new Promise((resolve) => {
@@ -150,6 +154,28 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 
   sendResponse({ status: "done" });
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      let action = message.action
+
+  switch (action) {
+
+    case "listUrls":
+      groupTabs(sendResponse)
+      break;
+    
+    
+    case "getGroupData":
+      const temp = async () => {
+        let windowObj = await getLastFocusedWindow()
+        let groupData = await queryGroups(windowObj.id)
+        sendResponse(groupData)
+      }
+      temp()
+      return true
+  }
+
 });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
