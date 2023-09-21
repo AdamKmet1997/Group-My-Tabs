@@ -119,7 +119,6 @@ body, html{
     align-items: center;
 }
 
-
 .auto-grouping-container{
     display: flex;
     flex-direction: row;
@@ -155,6 +154,7 @@ body, html{
 .groups-container{
     display: grid;
     grid-template-columns: repeat(4, $settings-page-grid-col);
+    position: relative;
 
     height: 95%;
     width: 95%;
@@ -172,6 +172,15 @@ body, html{
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.overlay{
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);;
+    position: absolute;
+    z-index: 2;
 }
 
 // For the individual groups

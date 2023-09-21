@@ -179,6 +179,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
+
+  let settings = await GetSettingsFromStorage()
+  if (!settings.autoGrouping){return}
+
   // Get the current active window
   const lastFocusedWindowObject = await getLastFocusedWindow();
 
@@ -190,7 +194,7 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
     let groupMap = {};
 
     allTabs.forEach((existingTab) => {
-      if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE) {
+      if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE && !(settings.excludeFromAutoGrouping.includes(existingTab.groupId))) {
         let domain = getDomainFromURL(existingTab.url);
         groupMap[domain] = existingTab.groupId;
       }
@@ -214,3 +218,10 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
     }
   }
 });
+
+
+
+async function GetSettingsFromStorage(){
+  let {settings} = await chrome.storage.local.get("settings")
+  return settings
+}

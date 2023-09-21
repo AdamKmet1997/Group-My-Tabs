@@ -24,7 +24,7 @@
     </button>
   </div>
 
-    <div  class="main-container">
+    <div  class="main-container hide">
       <button id="listUrls">Group My Tabs</button>
       <div id="links-container">
         <a
@@ -44,13 +44,14 @@
       </div>
     </div>
 
-    <div class="settings-container hide">
+    <div class="settings-container ">
+
 
       <div class="auto-grouping-container">
         <span>Auto-Grouping</span>
 
-        <label for="toggle-btn" class="toggle-container">
-          <input type="checkbox" id="toggle-btn" class="toggle-input">
+        <label for="auto-grouping-toggle" class="toggle-container">
+          <input type="checkbox" id="auto-grouping-toggle" class="toggle-input">
           <div class="toggle-fill"></div>
         </label>
 
@@ -61,6 +62,8 @@
       </div>
 
       <div class="groups-container">
+
+        <div class="overlay"></div>
 
         <div class="no-groups-text hide">
           No Groups Yet
