@@ -55,9 +55,8 @@ body, html{
     }
 }
 
-// #listUrls :hover + .tooltip{
-//     opacity: 1;
-// }
+
+// Main container tooltip
 
 .main-container .tooltip{
     background-color: #333;
@@ -175,6 +174,15 @@ body, html{
     cursor: default;
 }
 
+.info-circle-container{
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    cursor:default;
+}
+
+// Auto-grouping text tooltip
 
 .auto-grouping-container .tooltip {
     background-color: #333;
@@ -203,13 +211,7 @@ body, html{
     cursor:pointer;
 }
 
-.info-circle-container{
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    cursor:default;
-}
+
 
 .groups-window-text{
     font-size: 15px;
@@ -226,6 +228,8 @@ body, html{
 
     cursor: default;
 }
+
+// Current window text tooltip
 
 .groups-window-text .tooltip{
     position: absolute;
@@ -256,30 +260,15 @@ body, html{
     height: 13px !important;
 }
 
-.groups-window-text .tooltip2{
-    display: none;
-    position: absolute;
-    background-color: #333;
-    color: #fff;
-    padding: 5px;
-    border-radius: 5px;
-    z-index: 1;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-    font-size: 15px;
-    width: 180px;
-}
 
-.groups-window-text .more-info:hover + .tooltip2{
-    display: block;
-    opacity: 1;
-}
 
 .no-groups-text{
     font-size: 12px;
     font-family: "Poppins", sans-serif;
 
 }
+
+// Groups container
 
 .groups-container{
     display: grid;
@@ -321,6 +310,8 @@ body, html{
 .toggle-size{
     --width: 35px !important;
 }
+
+// Page Change
 
 .page-change-btn-style{
     width: 20px;

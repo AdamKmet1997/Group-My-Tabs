@@ -17,7 +17,8 @@ const UI = {
 };
 
 // The settings are first initialized in the background when the extension first runs
-let SETTINGS = {excludeFromAutoGrouping:[]}
+let SETTINGS = {}
+
 // settings =  {
 //   autoGrouping: true / false,
 //   excludeFromAutoGrouping:[]

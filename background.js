@@ -184,12 +184,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         let groupData = await queryGroups(windowObj.id)
 
         // Debugging
-        let dummyGroups = 0
+        // let dummyGroups = 0
 
-        for (let i = 0; i < dummyGroups; i++){
-          let dummyGroup = {id:1, title:"Youtube"}
-          groupData.push(dummyGroup)
-        }
+        // for (let i = 0; i < dummyGroups; i++){
+        //   let dummyGroup = {id:1, title:"Youtube"}
+        //   groupData.push(dummyGroup)
+        // }
+
         sendResponse(groupData)
       }
       tempFunction()
