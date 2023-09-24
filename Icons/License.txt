@@ -1,1 +1,3 @@
-gear: https://www.svgrepo.com/svg/17716/gear?edit=true
+gear: https://www.svgrepo.com/svg/17716/gear
+home: https://www.svgrepo.com/svg/506663/home
+info-circle: https://www.svgrepo.com/svg/533722/circle-information
