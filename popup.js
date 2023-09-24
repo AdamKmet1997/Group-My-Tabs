@@ -12,6 +12,8 @@ const UI = {
 
   nextGroupPageButton: document.querySelector(".change-page-container .next-page"),
   previousGroupPageButton: document.querySelector(".change-page-container .previous-page"),
+
+  noGroupsText: document.querySelector(".no-groups-text")
 };
 
 // The settings are first initialized in the background when the extension first runs
@@ -107,6 +109,12 @@ function AddGroupNames(){
     let currentNumOfGroupsInPage = 0
     let groupPageElement, newPageNumberElement
 
+    if (response.length === 0){
+      UI.noGroupsText.classList.remove("hide")
+    } else{
+      UI.noGroupsText.classList.remove("add")
+    }
+
     response.forEach(({id, title}) => {
 
        // If there is no page or the current page is full with 8 groups (4 rows)
@@ -151,8 +159,18 @@ function AddGroupNames(){
       let group = document.createElement("div")
       group.classList.add("group")
 
+      // Truncate the group name if too long
+
+      if (title.length > 17){
+        title = title.slice(0,17)
+      }
+
+      if (title.trim() === ""){
+        title = "Untitled"
+      }
+
       group.innerHTML = `
-      ${title}
+      <span class=group-name>${title}</span>
       <label for="${id}" class="toggle-container">
         <input type="checkbox", id="${id}", class="toggle-input">
         <div class="toggle-fill"></div>
@@ -191,6 +209,9 @@ function AddGroupNames(){
 }
 
 function SwitchGroupContainerPage({currentPageNumber, nextPageNumber}){
+  // Return if there's only 1 page
+  if (currentPageNumber == nextPageNumber){return}
+
   // The `nextPageNumber` indicates the page to navigate to
   let nextGroupsPageElement = GROUPS_PAGES_CONTAINER[nextPageNumber]?.groupPageElement
 

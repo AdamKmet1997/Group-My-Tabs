@@ -199,7 +199,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
-
+  
   let settings = await GetSettingsFromStorage()
   if (!settings.autoGrouping){return}
 
@@ -261,3 +261,14 @@ self.addEventListener("activate", async () => {
 
 
 });
+
+chrome.tabGroups.onRemoved.addListener(async (group) => {
+  let settings = await GetSettingsFromStorage()
+
+  // Remove this group from excluded groups if present
+  if (settings.excludeFromAutoGrouping.includes(group.id)){
+    settings.excludeFromAutoGrouping = settings.excludeFromAutoGrouping.filter(obj => obj !== group.id)
+    chrome.storage.local.set({settings})
+  }
+
+})
