@@ -23,7 +23,24 @@ function getLastFocusedWindow() {
   });
 }
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+// Get all groups in the CURRENT Window
+const queryGroups = (windowId) => {
+    return new Promise((resolve) => {
+      chrome.tabGroups.query({ windowId }, (groups) => {
+        resolve(groups);
+      });
+    });
+  };
+
+async function GetSettingsFromStorage(){
+    let {settings} = await chrome.storage.local.get("settings")
+    return settings
+  }
+
+  
+async function groupTabsWhenButtonClicked(sendResponse){
+
+  let settings = await GetSettingsFromStorage()
   const existingGroupsAndTabs = [];
 
   // Get the last focused (current) window
@@ -31,14 +48,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   const lastFocusedWindowID = lastFocusedWindowObject.id;
 
   // Wrap the chrome API calls in Promises
-  // Get all groups in the CURRENT Window
-  const queryGroups = (windowId) => {
-    return new Promise((resolve) => {
-      chrome.tabGroups.query({ windowId }, (groups) => {
-        resolve(groups);
-      });
-    });
-  };
   // Get all tabs in a group in the CURRENT Window
   const queryTabs = (groupId, windowId) => {
     return new Promise((resolve) => {
@@ -55,8 +64,10 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
   // Wait for the groups to be fetched
   const groups = await queryGroups(lastFocusedWindowID);
+
   for (let i = 0; i < groups.length; i++) {
     const group = groups[i];
+
 
     existingGroupsAndTabs.push({
       title: group.title,
@@ -69,17 +80,17 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
     // Wait for the tabs to be fetched for this group
     const tabs = await queryTabs(group.id, lastFocusedWindowID);
-    tabs.forEach((tab) => existingGroupsAndTabs[i].tabIds.push(tab.id));
+    tabs.forEach((tab) => existingGroupsAndTabs[existingGroupsAndTabs.length - 1].tabIds.push(tab.id));
   }
+
 
   // Wait for all tabs to be fetched
   const allTabs = await queryAllTabs();
   const tabsGroupedByUrl = {};
-
   for (const tab of allTabs) {
     let domain = getDomainFromURL(tab.url);
     const existingGroup = getGroupForTab(existingGroupsAndTabs, tab);
-
+    if (existingGroup && settings.excludeFromAutoGrouping.includes(existingGroup.id)){continue}
     if (domain) {
       if (!tabsGroupedByUrl.hasOwnProperty(domain)) {
         const [firstLetter, ...rest] = domain.split(".")[0];
@@ -150,9 +161,49 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 
   sendResponse({ status: "done" });
+}
+
+
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      let action = message.action
+      let tempFunction
+  switch (action) {
+    
+    case "listUrls":
+      tempFunction = async () => {
+        await groupTabsWhenButtonClicked(sendResponse)
+      }
+      tempFunction()
+      return true
+    
+    
+    case "getGroupData":
+        tempFunction = async () => {
+        let windowObj = await getLastFocusedWindow()
+        let groupData = await queryGroups(windowObj.id)
+
+        // Debugging
+        // let dummyGroups = 0
+
+        // for (let i = 0; i < dummyGroups; i++){
+        //   let dummyGroup = {id:1, title:"Youtube"}
+        //   groupData.push(dummyGroup)
+        // }
+
+        sendResponse(groupData)
+      }
+      tempFunction()
+      return true
+  }
+
 });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
+  
+  let settings = await GetSettingsFromStorage()
+  if (!settings.autoGrouping){return}
+
   // Get the current active window
   const lastFocusedWindowObject = await getLastFocusedWindow();
 
@@ -164,7 +215,7 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
     let groupMap = {};
 
     allTabs.forEach((existingTab) => {
-      if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE) {
+      if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE && !(settings.excludeFromAutoGrouping.includes(existingTab.groupId))) {
         let domain = getDomainFromURL(existingTab.url);
         groupMap[domain] = existingTab.groupId;
       }
@@ -188,3 +239,37 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
     }
   }
 });
+
+// Initialize Settings
+
+self.addEventListener("activate", async () => {
+  
+    // Check if settings have been initialized
+
+    let {settings} = await chrome.storage.local.get("settings")
+
+    if (settings){return}
+
+    // Initialize Settings
+
+    settings = {
+      autoGrouping: true,
+      excludeFromAutoGrouping:[]
+    }
+
+    await chrome.storage.local.set({settings})
+
+
+
+});
+
+chrome.tabGroups.onRemoved.addListener(async (group) => {
+  let settings = await GetSettingsFromStorage()
+
+  // Remove this group from excluded groups if present
+  if (settings.excludeFromAutoGrouping.includes(group.id)){
+    settings.excludeFromAutoGrouping = settings.excludeFromAutoGrouping.filter(obj => obj !== group.id)
+    chrome.storage.local.set({settings})
+  }
+
+})

@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "node-sass": "^9.0.0"
+  },
+  "scripts": {
+    "compile": "npx sass styles.scss:styles.css"
   }
 }
