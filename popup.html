@@ -3,15 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Group My Tabs - Chrome Extension</title>
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
   </head>
   <body>
 
+  <!-- Theme Toggle -->
+  <div class="theme-toggle-container">
+    <button id="theme-toggle" class="theme-toggle-btn" title="Toggle dark/light mode" aria-label="Toggle theme">
+      <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+      </svg>
+      <svg class="moon-icon hide" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9.37 5.51c-.18.64-.27 1.31-.27 1.99 0 4.08 3.32 7.4 7.4 7.4.68 0 1.35-.09 1.99-.27C17.45 17.19 14.93 19 12 19c-3.86 0-7-3.14-7-7 0-2.93 1.81-5.45 4.37-6.49z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Settings Bar -->
   <div class="settings-bar-container">
-    <button class="settings-page-btn">
+    <button class="settings-page-btn" title="Settings" aria-label="Open settings">
 
       <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
     <svg  class="settings-page-icon icon" fill="#000000" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256px" height="256px" viewBox="0 0 45.97 45.97" xml:space="preserve" stroke="#000000" stroke-width="0.00045973000000000005">
@@ -42,106 +54,113 @@
     </button>
   </div>
 
-    <div  class="main-container">
-
-      <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
-      <svg class="info-circle" width="256px" height="256px" viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg">
-
-                    <g id="SVGRepo_bgCarrier" stroke-width="0"/>
-                    
-                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.192"/>
-                    
-                    <g id="SVGRepo_iconCarrier"> <path d="M12 8H12.01M12 11V16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </g>
-                    
-      </svg>
-
-      <button id="listUrls">Group My Tabs</button>
-
-      <span class="tooltip">All groups will be grouped based on their domain. Groups can be disabled from this process in the settings</span>
-
-      <div id="links-container">
-        <a
-          href="https://github.com/AdamKmet1997/Group-My-Tabs"
-          id="link-style"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Github</a
-        >
-        <a
-          href="https://chrome.google.com/webstore/detail/group-my-tabs/gefpkapjbpiigomladkmbcopmmfmdbmd"
-          id="link-style"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Leave a Review?</a
-        >
-      </div>
-
+    <!-- Notification Area -->
+    <div id="notification" class="notification hide">
+      <span class="notification-text"></span>
+      <button class="notification-close" aria-label="Close notification">×</button>
     </div>
 
-    <div class="settings-container hide">
-
-
-      <div class="auto-grouping-container">
-        <span>Auto-Grouping</span>
-
-        <div class="info-circle-container">
-            <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
-            <svg class="info-circle" width="256px" height="256px" viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg">
-
-              <g id="SVGRepo_bgCarrier" stroke-width="0"/>
-              
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.192"/>
-              
-              <g id="SVGRepo_iconCarrier"> <path d="M12 8H12.01M12 11V16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </g>
-              
-            </svg>
-
-            <span class="tooltip">Automatically group new tabs by domain</span>
-
+    <!-- Main Container -->
+    <main class="main-container">
+      <div class="main-content">
+        <!-- Help Info -->
+        <div class="info-container">
+          <svg class="info-circle" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 8H12.01M12 11V16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="tooltip">Groups tabs by domain. Disabled groups won't be auto-grouped.</span>
         </div>
 
+        <!-- Main Action Button -->
+        <button id="listUrls" class="group-tabs-btn" aria-describedby="group-tabs-help">
+          <span class="btn-text">Group My Tabs</span>
+          <div class="loading-spinner hide" aria-hidden="true"></div>
+        </button>
+
+        <!-- Quick Stats -->
+        <div class="stats-container">
+          <span class="stats-text" id="stats-text">Ready to group</span>
+        </div>
+
+        <!-- Links -->
+        <div id="links-container">
+          <a
+            href="https://chrome.google.com/webstore/detail/group-my-tabs/gefpkapjbpiigomladkmbcopmmfmdbmd"
+            class="link-style"
+            target="_blank"
+            rel="noopener noreferrer"
+            >⭐ Leave a Review</a
+          >
+        </div>
+      </div>
+    </main>
+
+    <!-- Settings Container -->
+    <section class="settings-container hide" role="main" aria-label="Settings">
+      <!-- Settings Header -->
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <div class="bulk-actions">
+          <button class="bulk-action-btn" id="enable-all-groups" title="Enable all groups">
+            <span>✓ Enable All</span>
+          </button>
+          <button class="bulk-action-btn" id="disable-all-groups" title="Disable all groups">
+            <span>✗ Disable All</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Auto-Grouping Setting -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <label for="auto-grouping-toggle" class="setting-label">Auto-Grouping</label>
+          <div class="info-circle-container">
+            <svg class="info-circle" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 8H12.01M12 11V16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="tooltip">Automatically group new tabs by domain</span>
+          </div>
+        </div>
         <label for="auto-grouping-toggle" class="toggle-container">
           <input type="checkbox" id="auto-grouping-toggle" class="toggle-input">
           <div class="toggle-fill"></div>
         </label>
-
       </div>
 
-      <div class="groups-window-text">
-        <span>Current Window</span>
-        
-        <div class="info-circle-container">
-          <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
-          <svg class="info-circle" width="256px" height="256px" viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Groups Section -->
+      <div class="groups-section">
+        <div class="section-header">
+          <h3>Group Management</h3>
+          <div class="info-circle-container">
+            <svg class="info-circle" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 8H12.01M12 11V16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="tooltip">Toggle groups ON/OFF for auto-grouping</span>
+          </div>
+        </div>
 
-            <g id="SVGRepo_bgCarrier" stroke-width="0"/>
-            
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.192"/>
-            
-            <g id="SVGRepo_iconCarrier"> <path d="M12 8H12.01M12 11V16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </g>
-            
-          </svg>
+        <div class="no-groups-text-container">
+          <span class="no-groups-text hide">No groups found in current window</span>
+        </div>
 
-          <span class="tooltip">OFF: Disable group(s) from re-grouping</span>
-
+        <!-- Pagination -->
+        <div class="pagination-container">
+          <button class="previous-page page-nav-btn" title="Previous page" aria-label="Previous page">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+            </svg>
+          </button>
+          
+          <div class="page-numbers"></div>
+          
+          <button class="next-page page-nav-btn" title="Next page" aria-label="Next page">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+            </svg>
+          </button>
+        </div>
       </div>
-      </div>
-
-      <div class="no-groups-text-container">
-        <span class="no-groups-text hide">No Groups Yet</span>
-      </div>
-
-      <div class="change-page-container">
-        <button class="previous-page page-change-btn-style">
-          <span class="change-page-icon"><</span>
-        </button>
-
-        <button class="next-page page-change-btn-style">
-          <span class="change-page-icon">></span>
-        </button>
-      </div>
-
-    </div>
+    </section>
 
   </body>
   <script src="popup.js"></script>

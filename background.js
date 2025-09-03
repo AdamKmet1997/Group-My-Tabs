@@ -34,6 +34,28 @@ const queryGroups = (windowId) => {
 
 async function GetSettingsFromStorage(){
     let {settings} = await chrome.storage.local.get("settings")
+    
+    // Initialize default settings if null
+    if (!settings) {
+      settings = {
+        autoGrouping: true,
+        excludeFromAutoGrouping: [],
+        theme: "light"
+      }
+      await chrome.storage.local.set({settings})
+    }
+    
+    // Ensure all properties exist
+    if (!settings.excludeFromAutoGrouping) {
+      settings.excludeFromAutoGrouping = []
+    }
+    if (!settings.theme) {
+      settings.theme = "light"
+    }
+    
+    // Save updated settings if any properties were missing
+    await chrome.storage.local.set({settings})
+    
     return settings
   }
 
@@ -90,7 +112,7 @@ async function groupTabsWhenButtonClicked(sendResponse){
   for (const tab of allTabs) {
     let domain = getDomainFromURL(tab.url);
     const existingGroup = getGroupForTab(existingGroupsAndTabs, tab);
-    if (existingGroup && settings.excludeFromAutoGrouping.includes(existingGroup.id)){continue}
+    if (existingGroup && settings.excludeFromAutoGrouping && settings.excludeFromAutoGrouping.includes(existingGroup.id)){continue}
     if (domain) {
       if (!tabsGroupedByUrl.hasOwnProperty(domain)) {
         const [firstLetter, ...rest] = domain.split(".")[0];
@@ -183,59 +205,82 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         let windowObj = await getLastFocusedWindow()
         let groupData = await queryGroups(windowObj.id)
 
-        // Debugging
-        // let dummyGroups = 0
-
-        // for (let i = 0; i < dummyGroups; i++){
-        //   let dummyGroup = {id:1, title:"Youtube"}
-        //   groupData.push(dummyGroup)
-        // }
-
         sendResponse(groupData)
       }
       tempFunction()
       return true
+
   }
 
 });
 
+
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   
   let settings = await GetSettingsFromStorage()
-  if (!settings.autoGrouping){return}
+  if (!settings || !settings.autoGrouping){return}
 
-  // Get the current active window
-  const lastFocusedWindowObject = await getLastFocusedWindow();
-
-  if (changeInfo.status === "complete" && !tab.pinned) {
+  // Only process tabs in the correct window
+  if (changeInfo.status === "complete" && !tab.pinned && tab.windowId) {
     let tabDomain = getDomainFromURL(tab.url);
     if (!tabDomain) return;
 
-    let allTabs = lastFocusedWindowObject.tabs;
-    let groupMap = {};
+    // Get fresh window and group data to avoid race conditions
+    let currentWindow;
+    try {
+      currentWindow = await new Promise((resolve, reject) => {
+        chrome.windows.get(tab.windowId, { populate: true }, (window) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve(window);
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Error getting window:", error);
+      return;
+    }
 
-    allTabs.forEach((existingTab) => {
-      if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE && !(settings.excludeFromAutoGrouping.includes(existingTab.groupId))) {
+    // Build group map from current window state
+    let groupMap = {};
+    let excludedGroups = new Set(settings.excludeFromAutoGrouping);
+
+    currentWindow.tabs.forEach((existingTab) => {
+      if (existingTab.groupId !== chrome.tabs.TAB_ID_NONE && !excludedGroups.has(existingTab.groupId)) {
         let domain = getDomainFromURL(existingTab.url);
-        groupMap[domain] = existingTab.groupId;
+        if (domain) {
+          groupMap[domain] = existingTab.groupId;
+        }
       }
     });
 
     if (groupMap[tabDomain] !== undefined) {
-      chrome.tabs.group(
-        {
-          tabIds: [tabId],
-          groupId: groupMap[tabDomain],
-        },
-        function () {
-          if (chrome.runtime.lastError) {
-            console.error(
-              "Error moving tab to group:",
-              chrome.runtime.lastError.message
-            );
-          }
+      // Verify the target group still exists before moving
+      chrome.tabGroups.get(groupMap[tabDomain], (targetGroup) => {
+        if (chrome.runtime.lastError) {
+          console.log("Target group no longer exists, skipping auto-grouping");
+          return;
         }
-      );
+        
+        // Double-check the group isn't excluded (in case it was just disabled)
+        if (!excludedGroups.has(targetGroup.id)) {
+          chrome.tabs.group(
+            {
+              tabIds: [tabId],
+              groupId: targetGroup.id,
+            },
+            function () {
+              if (chrome.runtime.lastError) {
+                console.error(
+                  "Error moving tab to group:",
+                  chrome.runtime.lastError.message
+                );
+              }
+            }
+          );
+        }
+      });
     }
   }
 });
@@ -267,7 +312,7 @@ chrome.tabGroups.onRemoved.addListener(async (group) => {
   let settings = await GetSettingsFromStorage()
 
   // Remove this group from excluded groups if present
-  if (settings.excludeFromAutoGrouping.includes(group.id)){
+  if (settings.excludeFromAutoGrouping && settings.excludeFromAutoGrouping.includes(group.id)){
     settings.excludeFromAutoGrouping = settings.excludeFromAutoGrouping.filter(obj => obj !== group.id)
     chrome.storage.local.set({settings})
   }
