@@ -460,6 +460,7 @@ class TabGroupManager {
         2000
       );
     });
+
     
     // Bulk actions
     this.UI.enableAllBtn?.addEventListener("click", () => this.handleBulkAction('enable'));
@@ -731,6 +732,7 @@ class TabGroupManager {
       document.getElementById('memory-estimate').textContent = analytics.memoryEstimate;
       document.getElementById('memory-saved').textContent = analytics.memorySaved;
       document.getElementById('last-used').textContent = analytics.lastUsed;
+      
       
     } catch (error) {
       console.error("Error loading analytics:", error);

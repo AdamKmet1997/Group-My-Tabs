@@ -714,6 +714,7 @@ html, body {
   margin-top: 8px;
 }
 
+
 /* Links */
 #links-container {
   margin-top: 8px;
@@ -789,6 +790,14 @@ html, body {
   padding: 12px 0;
 }
 
+.setting-row.advanced-setting {
+  border-left: 3px solid var(--brand-accent);
+  padding-left: 12px;
+  background: var(--bg-accent);
+  border-radius: 6px;
+  margin: 8px 0;
+}
+
 .setting-info {
   display: flex;
   align-items: center;
@@ -799,6 +808,11 @@ html, body {
   font-weight: 500;
   color: var(--text-primary);
   cursor: pointer;
+}
+
+.advanced-setting .setting-label {
+  color: var(--brand-accent);
+  font-size: 13px;
 }
 
 /* Groups Section */
@@ -865,6 +879,10 @@ html, body {
   flex: 1;
   min-width: 0;
   margin-right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 }
 
 /* No Groups Message */

@@ -59,65 +59,50 @@ async function GetSettingsFromStorage(){
     return settings
   }
 
+// Process a single window completely independently
+async function processWindowIndependently(windowObj, existingGroupsAndTabs, settings) {
+  const windowId = windowObj.id;
+  const windowTabsGroupedByUrl = {};
   
-async function groupTabsWhenButtonClicked(sendResponse){
-
-  let settings = await GetSettingsFromStorage()
-  const existingGroupsAndTabs = [];
-
-  // Get the last focused (current) window
-  const lastFocusedWindowObject = await getLastFocusedWindow();
-  const lastFocusedWindowID = lastFocusedWindowObject.id;
-
-  // Wrap the chrome API calls in Promises
-  // Get all tabs in a group in the CURRENT Window
-  const queryTabs = (groupId, windowId) => {
-    return new Promise((resolve) => {
-      chrome.tabs.query({ groupId, windowId }, (tabs) => {
-        resolve(tabs);
-      });
-    });
-  };
-
-  // Get all tabs in the CURRENT Window
-  const queryAllTabs = () => {
-    return lastFocusedWindowObject.tabs;
-  };
-
-  // Wait for the groups to be fetched
-  const groups = await queryGroups(lastFocusedWindowID);
+  // Get existing groups for this window
+  const groups = await queryGroups(windowId);
+  const windowExistingGroups = [];
 
   for (let i = 0; i < groups.length; i++) {
     const group = groups[i];
-
-
-    existingGroupsAndTabs.push({
+    const windowGroup = {
       title: group.title,
       color: group.color,
       collapsed: group.collapsed,
       id: group.id,
       windowId: group.windowId,
       tabIds: [],
-    });
+    };
 
-    // Wait for the tabs to be fetched for this group
-    const tabs = await queryTabs(group.id, lastFocusedWindowID);
-    tabs.forEach((tab) => existingGroupsAndTabs[existingGroupsAndTabs.length - 1].tabIds.push(tab.id));
+    // Get tabs for this group
+    const tabs = await new Promise((resolve) => {
+      chrome.tabs.query({ groupId: group.id, windowId }, (tabs) => {
+        resolve(tabs);
+      });
+    });
+    tabs.forEach((tab) => windowGroup.tabIds.push(tab.id));
+    
+    windowExistingGroups.push(windowGroup);
+    existingGroupsAndTabs.push(windowGroup);
   }
 
-
-  // Wait for all tabs to be fetched
-  const allTabs = await queryAllTabs();
-  const tabsGroupedByUrl = {};
-  for (const tab of allTabs) {
+  // Process tabs in this window only
+  for (const tab of windowObj.tabs) {
     let domain = getDomainFromURL(tab.url);
-    const existingGroup = getGroupForTab(existingGroupsAndTabs, tab);
+    const existingGroup = getGroupForTab(windowExistingGroups, tab);
     if (existingGroup && settings.excludeFromAutoGrouping && settings.excludeFromAutoGrouping.includes(existingGroup.id)){continue}
+    
     if (domain) {
-      if (!tabsGroupedByUrl.hasOwnProperty(domain)) {
+      if (!windowTabsGroupedByUrl.hasOwnProperty(domain)) {
         const [firstLetter, ...rest] = domain.split(".")[0];
-        tabsGroupedByUrl[domain] = {
+        windowTabsGroupedByUrl[domain] = {
           domain,
+          windowId: windowId,
           ids: [],
           title: firstLetter.toUpperCase() + rest.join(""),
           color: null,
@@ -125,30 +110,32 @@ async function groupTabsWhenButtonClicked(sendResponse){
           collapsed: true,
         };
       }
-      tabsGroupedByUrl[domain].ids.push(tab.id);
+      windowTabsGroupedByUrl[domain].ids.push(tab.id);
 
-      if (tabsGroupedByUrl[domain].groupId === null && existingGroup) {
-        tabsGroupedByUrl[domain].groupId = existingGroup.id;
+      if (windowTabsGroupedByUrl[domain].groupId === null && existingGroup) {
+        windowTabsGroupedByUrl[domain].groupId = existingGroup.id;
 
         if (existingGroup.color)
-          tabsGroupedByUrl[domain].color = existingGroup.color;
-        else delete tabsGroupedByUrl[domain].color;
+          windowTabsGroupedByUrl[domain].color = existingGroup.color;
+        else delete windowTabsGroupedByUrl[domain].color;
 
         if (existingGroup.title)
-          tabsGroupedByUrl[domain].title = existingGroup.title;
+          windowTabsGroupedByUrl[domain].title = existingGroup.title;
         if ("collapsed" in existingGroup)
-          tabsGroupedByUrl[domain].collapsed = existingGroup.collapsed;
+          windowTabsGroupedByUrl[domain].collapsed = existingGroup.collapsed;
       }
     }
   }
 
-  for (const url in tabsGroupedByUrl) {
-    if (tabsGroupedByUrl[url].ids.length > 1) {
+  // Group tabs within this window only
+  for (const domain in windowTabsGroupedByUrl) {
+    if (windowTabsGroupedByUrl[domain].ids.length > 1) {
+      const groupData = windowTabsGroupedByUrl[domain];
       const opts = {
-        tabIds: tabsGroupedByUrl[url].ids,
+        tabIds: groupData.ids,
       };
-      if (tabsGroupedByUrl[url].groupId)
-        opts.groupId = tabsGroupedByUrl[url].groupId;
+      if (groupData.groupId)
+        opts.groupId = groupData.groupId;
 
       chrome.tabs.group(opts, (groupId) => {
         if (chrome.runtime.lastError) {
@@ -161,7 +148,7 @@ async function groupTabsWhenButtonClicked(sendResponse){
         if (!opts.groupId) {
           chrome.tabGroups.update(
             groupId,
-            { title: tabsGroupedByUrl[url].title },
+            { title: groupData.title },
             () => {
               if (chrome.runtime.lastError) {
                 console.error(
@@ -172,7 +159,8 @@ async function groupTabsWhenButtonClicked(sendResponse){
             }
           );
 
-          const groupPosition = existingGroupsAndTabs.reduce((acc, obj) => {
+          // Calculate group position within this specific window
+          const groupPosition = windowExistingGroups.reduce((acc, obj) => {
             return acc + (obj.tabIds ? obj.tabIds.length : 0);
           }, 0);
 
@@ -181,19 +169,30 @@ async function groupTabsWhenButtonClicked(sendResponse){
       });
     }
   }
+}
+  
+async function groupTabsWhenButtonClicked(sendResponse){
 
-  // Track analytics
-  const groupedDomains = Object.keys(tabsGroupedByUrl).filter(domain => tabsGroupedByUrl[domain].ids.length > 1)
-  if (groupedDomains.length > 0) {
-    await trackAnalytic('tabsGrouped')
-  }
+  let settings = await GetSettingsFromStorage()
+  const existingGroupsAndTabs = [];
+
+  // Always use current focused window for grouping operations
+  // (Multi-window mode only affects display, not grouping behavior)
+
+  // Always group tabs only in the current focused window
+  // Multi-window mode only affects display and analytics, not grouping behavior
+  const currentWindow = await getLastFocusedWindow();
+  await processWindowIndependently(currentWindow, existingGroupsAndTabs, settings);
+
+  // Track analytics - simplified for multi-window mode
+  await trackAnalytic('tabsGrouped')
 
   sendResponse({ status: "done" });
 }
 
 
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       let action = message.action
       let tempFunction
   switch (action) {
@@ -208,9 +207,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     
     case "getGroupData":
         tempFunction = async () => {
+        // Always get groups from current window only
         let windowObj = await getLastFocusedWindow()
         let groupData = await queryGroups(windowObj.id)
-
         sendResponse(groupData)
       }
       tempFunction()
