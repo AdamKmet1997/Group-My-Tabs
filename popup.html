@@ -60,6 +60,17 @@
       <button class="notification-close" aria-label="Close notification">×</button>
     </div>
 
+    <!-- Tab Search Container -->
+    <div class="search-container hide">
+      <div class="search-header">
+        <input type="text" id="tab-search" placeholder="Search tabs..." class="search-input">
+        <button class="search-close-btn" id="close-search" aria-label="Close search">×</button>
+      </div>
+      <div class="search-results" id="search-results">
+        <div class="no-results hide">No tabs found</div>
+      </div>
+    </div>
+
     <!-- Main Container -->
     <main class="main-container">
       <div class="main-content">
@@ -76,6 +87,22 @@
           <span class="btn-text">Group My Tabs</span>
           <div class="loading-spinner hide" aria-hidden="true"></div>
         </button>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button id="search-tabs-btn" class="quick-action-btn" title="Search tabs">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            Search
+          </button>
+          <button id="analytics-btn" class="quick-action-btn" title="View analytics">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16,11V3H8v6H2v12h20V11H16z M10,5h4v14h-4V5z M4,11h4v8H4V11z M20,19h-4v-6h4V19z"/>
+            </svg>
+            Stats
+          </button>
+        </div>
 
         <!-- Quick Stats -->
         <div class="stats-container">
@@ -160,7 +187,79 @@
           </button>
         </div>
       </div>
+
+      <!-- Session Management -->
+      <div class="session-section">
+        <div class="section-header">
+          <h3>Session Management</h3>
+          <div class="info-circle-container">
+            <svg class="info-circle" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 8H12.01M12 11V16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="tooltip">Save and restore your tab group sessions</span>
+          </div>
+        </div>
+
+        <div class="session-actions">
+          <div class="session-input">
+            <input type="text" id="session-name" placeholder="Enter session name..." class="session-name-input">
+            <button id="save-session" class="session-btn">Save Current</button>
+          </div>
+        </div>
+
+        <div class="saved-sessions" id="saved-sessions">
+          <div class="no-sessions">No saved sessions</div>
+        </div>
+      </div>
+
     </section>
+
+    <!-- Analytics Container -->
+    <div class="analytics-container hide">
+      <div class="analytics-header">
+        <h2>Your Productivity Stats</h2>
+        <button class="analytics-close-btn" id="close-analytics" aria-label="Close analytics">×</button>
+      </div>
+      
+      <div class="analytics-content">
+        <div class="analytics-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="total-tabs">-</div>
+            <div class="stat-label">Total Tabs Open</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-value" id="grouped-tabs">-</div>
+            <div class="stat-label">Grouped Tabs</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-value" id="total-groups">-</div>
+            <div class="stat-label">Active Groups</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-value" id="sessions-created">-</div>
+            <div class="stat-label">Sessions Saved</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-value" id="memory-estimate">-</div>
+            <div class="stat-label">Memory Usage</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-value" id="memory-saved">-</div>
+            <div class="stat-label">Memory Saved</div>
+          </div>
+        </div>
+        
+        <div class="analytics-summary">
+          <p>Last used: <span id="last-used">Never</span></p>
+          <p>Keep up the great work organizing your tabs! 🎉</p>
+        </div>
+      </div>
+    </div>
 
   </body>
   <script src="popup.js"></script>

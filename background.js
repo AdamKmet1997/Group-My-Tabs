@@ -182,6 +182,12 @@ async function groupTabsWhenButtonClicked(sendResponse){
     }
   }
 
+  // Track analytics
+  const groupedDomains = Object.keys(tabsGroupedByUrl).filter(domain => tabsGroupedByUrl[domain].ids.length > 1)
+  if (groupedDomains.length > 0) {
+    await trackAnalytic('tabsGrouped')
+  }
+
   sendResponse({ status: "done" });
 }
 
@@ -206,6 +212,62 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         let groupData = await queryGroups(windowObj.id)
 
         sendResponse(groupData)
+      }
+      tempFunction()
+      return true
+
+    case "searchTabs":
+      tempFunction = async () => {
+        const { query } = message
+        const allTabs = await chrome.tabs.query({})
+        const filteredTabs = allTabs.filter(tab => 
+          tab.title.toLowerCase().includes(query.toLowerCase()) ||
+          tab.url.toLowerCase().includes(query.toLowerCase())
+        )
+        sendResponse(filteredTabs)
+      }
+      tempFunction()
+      return true
+
+    case "saveSession":
+      tempFunction = async () => {
+        const { sessionName } = message
+        await saveCurrentSession(sessionName)
+        sendResponse({ success: true })
+      }
+      tempFunction()
+      return true
+
+    case "loadSession":
+      tempFunction = async () => {
+        const { sessionName } = message
+        await loadSession(sessionName)
+        sendResponse({ success: true })
+      }
+      tempFunction()
+      return true
+
+    case "getSessions":
+      tempFunction = async () => {
+        const sessions = await getSavedSessions()
+        sendResponse(sessions)
+      }
+      tempFunction()
+      return true
+
+    case "deleteSession":
+      tempFunction = async () => {
+        const { sessionName } = message
+        await deleteSession(sessionName)
+        sendResponse({ success: true })
+      }
+      tempFunction()
+      return true
+
+    case "getAnalytics":
+      tempFunction = async () => {
+        const analytics = await getAnalyticsData()
+        sendResponse(analytics)
       }
       tempFunction()
       return true
@@ -285,8 +347,250 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   }
 });
 
-// Initialize Settings
+// Context Menu Setup
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: "groupSimilarTabs",
+    title: "Group similar tabs",
+    contexts: ["page"]
+  })
+  
+  chrome.contextMenus.create({
+    id: "groupByDomain",
+    title: "Group all tabs from this domain",
+    contexts: ["page"]
+  })
+  
+  chrome.contextMenus.create({
+    id: "separator1",
+    type: "separator",
+    contexts: ["page"]
+  })
+  
+  chrome.contextMenus.create({
+    id: "saveCurrentSession",
+    title: "Save current session",
+    contexts: ["page"]
+  })
+})
 
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  switch (info.menuItemId) {
+    case "groupSimilarTabs":
+      await groupTabsWhenButtonClicked(() => {})
+      break
+    case "groupByDomain":
+      await groupTabsByDomain(tab.url)
+      break
+    case "saveCurrentSession":
+      await saveCurrentSession(`Session ${new Date().toLocaleString()}`)
+      break
+  }
+})
+
+// Group tabs by specific domain
+async function groupTabsByDomain(url) {
+  const domain = getDomainFromURL(url)
+  if (!domain) return
+
+  const allTabs = await chrome.tabs.query({})
+  const domainTabs = allTabs.filter(tab => getDomainFromURL(tab.url) === domain)
+  
+  if (domainTabs.length > 1) {
+    const groupId = await chrome.tabs.group({ tabIds: domainTabs.map(t => t.id) })
+    await chrome.tabGroups.update(groupId, { 
+      title: domain.charAt(0).toUpperCase() + domain.slice(1).replace('.com', ''),
+      collapsed: false
+    })
+  }
+}
+
+// Session Management Functions
+async function saveCurrentSession(sessionName) {
+  try {
+    const windows = await chrome.windows.getAll({ populate: true })
+    const sessionData = {
+      name: sessionName,
+      timestamp: Date.now(),
+      windows: []
+    }
+
+    for (const window of windows) {
+      const windowData = {
+        id: window.id,
+        tabs: [],
+        groups: []
+      }
+
+      // Get tab groups for this window
+      const groups = await queryGroups(window.id)
+      for (const group of groups) {
+        const groupTabs = await chrome.tabs.query({ groupId: group.id, windowId: window.id })
+        windowData.groups.push({
+          title: group.title,
+          color: group.color,
+          collapsed: group.collapsed,
+          tabIds: groupTabs.map(tab => ({
+            url: tab.url,
+            title: tab.title,
+            pinned: tab.pinned
+          }))
+        })
+      }
+
+      // Get ungrouped tabs
+      const ungroupedTabs = window.tabs.filter(tab => tab.groupId === chrome.tabs.TAB_ID_NONE)
+      windowData.tabs = ungroupedTabs.map(tab => ({
+        url: tab.url,
+        title: tab.title,
+        pinned: tab.pinned
+      }))
+
+      sessionData.windows.push(windowData)
+    }
+
+    // Save session
+    const { sessions = {} } = await chrome.storage.local.get("sessions")
+    sessions[sessionName] = sessionData
+    await chrome.storage.local.set({ sessions })
+
+    // Track analytics
+    await trackAnalytic('sessionSaved')
+
+  } catch (error) {
+    console.error('Error saving session:', error)
+  }
+}
+
+async function loadSession(sessionName) {
+  try {
+    const { sessions } = await chrome.storage.local.get("sessions")
+    if (!sessions || !sessions[sessionName]) return
+
+    const sessionData = sessions[sessionName]
+
+    // Create new windows for the session
+    for (const windowData of sessionData.windows) {
+      const tabUrls = []
+      
+      // Collect all tab URLs from groups and ungrouped tabs
+      windowData.groups.forEach(group => {
+        group.tabIds.forEach(tab => tabUrls.push(tab.url))
+      })
+      windowData.tabs.forEach(tab => tabUrls.push(tab.url))
+
+      if (tabUrls.length === 0) continue
+
+      // Create window with first tab
+      const newWindow = await chrome.windows.create({ url: tabUrls[0] })
+      
+      // Add remaining tabs
+      for (let i = 1; i < tabUrls.length; i++) {
+        await chrome.tabs.create({ windowId: newWindow.id, url: tabUrls[i] })
+      }
+
+      // Recreate groups after tabs are loaded
+      setTimeout(async () => {
+        const allTabs = await chrome.tabs.query({ windowId: newWindow.id })
+        let tabIndex = 0
+
+        for (const groupData of windowData.groups) {
+          const groupTabIds = []
+          for (let i = 0; i < groupData.tabIds.length; i++) {
+            if (allTabs[tabIndex]) {
+              groupTabIds.push(allTabs[tabIndex].id)
+              tabIndex++
+            }
+          }
+          
+          if (groupTabIds.length > 1) {
+            const groupId = await chrome.tabs.group({ tabIds: groupTabIds })
+            await chrome.tabGroups.update(groupId, {
+              title: groupData.title,
+              color: groupData.color,
+              collapsed: groupData.collapsed
+            })
+          }
+        }
+      }, 2000)
+    }
+
+    // Track analytics
+    await trackAnalytic('sessionLoaded')
+
+  } catch (error) {
+    console.error('Error loading session:', error)
+  }
+}
+
+async function getSavedSessions() {
+  const { sessions = {} } = await chrome.storage.local.get("sessions")
+  return Object.keys(sessions).map(name => ({
+    name,
+    timestamp: sessions[name].timestamp,
+    windowCount: sessions[name].windows.length,
+    tabCount: sessions[name].windows.reduce((total, win) => 
+      total + win.tabs.length + win.groups.reduce((groupTotal, group) => 
+        groupTotal + group.tabIds.length, 0), 0)
+  }))
+}
+
+async function deleteSession(sessionName) {
+  const { sessions = {} } = await chrome.storage.local.get("sessions")
+  delete sessions[sessionName]
+  await chrome.storage.local.set({ sessions })
+}
+
+// Analytics Functions
+async function trackAnalytic(action) {
+  const { analytics = {} } = await chrome.storage.local.get("analytics")
+  
+  if (!analytics[action]) {
+    analytics[action] = 0
+  }
+  analytics[action]++
+  
+  analytics.lastUsed = Date.now()
+  await chrome.storage.local.set({ analytics })
+}
+
+async function getAnalyticsData() {
+  const { analytics = {} } = await chrome.storage.local.get("analytics")
+  const windows = await chrome.windows.getAll({ populate: true })
+  
+  let totalTabs = 0
+  let totalGroups = 0
+  let groupedTabs = 0
+  
+  for (const window of windows) {
+    totalTabs += window.tabs.length
+    const groups = await queryGroups(window.id)
+    totalGroups += groups.length
+    
+    for (const group of groups) {
+      const groupTabs = await chrome.tabs.query({ groupId: group.id })
+      groupedTabs += groupTabs.length
+    }
+  }
+  
+  const memoryEstimate = totalTabs * 50 // Rough estimate: 50MB per tab
+  const memorySaved = (analytics.tabsGrouped || 0) * 20 // Estimate savings from grouping
+  
+  return {
+    totalTabs,
+    totalGroups,
+    groupedTabs,
+    ungroupedTabs: totalTabs - groupedTabs,
+    tabsGrouped: analytics.tabsGrouped || 0,
+    sessionsCreated: analytics.sessionSaved || 0,
+    sessionsLoaded: analytics.sessionLoaded || 0,
+    memoryEstimate: `${Math.round(memoryEstimate)}MB`,
+    memorySaved: `${Math.round(memorySaved)}MB`,
+    lastUsed: analytics.lastUsed ? new Date(analytics.lastUsed).toLocaleDateString() : 'Never'
+  }
+}
+
+// Initialize Settings
 self.addEventListener("activate", async () => {
   
     // Check if settings have been initialized
@@ -303,8 +607,6 @@ self.addEventListener("activate", async () => {
     }
 
     await chrome.storage.local.set({settings})
-
-
 
 });
 
